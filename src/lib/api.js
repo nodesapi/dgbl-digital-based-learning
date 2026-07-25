@@ -40,18 +40,18 @@ export async function syncSession(session) {
 }
 
 export async function fetchDashboardSessions() {
-  const response = await fetch(`${API_BASE}/dashboard/sessions`)
+  const response = await fetch(`${API_BASE}/dashboard/sessions`, { cache: 'no-store' })
   const payload = await parseResponse(response)
   return payload.sessions ?? []
 }
 
 export async function fetchDashboardCsv() {
-  const response = await fetch(`${API_BASE}/dashboard/export.csv`)
+  const response = await fetch(`${API_BASE}/dashboard/export.csv`, { cache: 'no-store' })
   return parseResponse(response)
 }
 
 export async function fetchDashboardPdf() {
-  const response = await fetch(`${API_BASE}/dashboard/export.pdf`)
+  const response = await fetch(`${API_BASE}/dashboard/export.pdf`, { cache: 'no-store' })
 
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`
