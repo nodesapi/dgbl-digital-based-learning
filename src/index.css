@@ -1,0 +1,66 @@
+:root {
+  color-scheme: light;
+  --bg-top: #ffd36f;
+  --bg-bottom: #fff8ef;
+  --surface: rgba(255, 252, 246, 0.98);
+  --surface-stroke: #5b3d2d;
+  --accent: #ff8f3d;
+  --accent-strong: #ff6b57;
+  --accent-mint: #58c8cf;
+  --accent-lemon: #ffd351;
+  --ink-strong: #4a3425;
+  --ink-soft: #6f5440;
+  --ink-muted: #957866;
+  --shadow-block: 8px 8px 0 rgba(91, 61, 45, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family:
+    'Nunito',
+    'Trebuchet MS',
+    sans-serif;
+  color: var(--ink-soft);
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255, 181, 80, 0.42), transparent 18%),
+    radial-gradient(circle at 88% 82%, rgba(90, 205, 230, 0.2), transparent 18%),
+    radial-gradient(circle at 78% 18%, rgba(255, 229, 120, 0.32), transparent 16%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 58%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 72%);
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Nunito', sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
