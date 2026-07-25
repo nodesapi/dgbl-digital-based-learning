@@ -18,6 +18,7 @@ import {
 import {
   deleteParticipant,
   fetchDashboardCsv,
+  fetchDashboardPdf,
   fetchDashboardSessions,
   getApiHealth,
   syncSession,
@@ -273,6 +274,14 @@ function downloadCsv(filename, content) {
   URL.revokeObjectURL(link.href)
 }
 
+function downloadBlob(filename, blob) {
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
 function speakText(text) {
   if (!text || !('speechSynthesis' in window)) {
     return
@@ -405,19 +414,29 @@ async function playFeedbackAudio(type) {
   }
 }
 
+function shuffleArray(items) {
+  const result = [...items]
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
 function resetQuestionState(question) {
-  const tokens = Array.isArray(question.options)
-    ? question.options.map((option, index) => ({
-        id: `${question.id}-${index}`,
-        label: typeof option === 'string' ? option : option.label,
-        rawValue: option,
-      }))
-    : []
+  const shuffledOptions = Array.isArray(question.options) ? shuffleArray(question.options) : []
+
+  const tokens = shuffledOptions.map((option, index) => ({
+    id: `${question.id}-${index}`,
+    label: typeof option === 'string' ? option : option.label,
+    rawValue: option,
+  }))
 
   return {
     selectedAnswer: null,
     builtTokens: [],
     availableTokens: tokens,
+    shuffledOptions,
     helpUsed: false,
     feedback: '',
     feedbackTone: 'neutral',
@@ -792,7 +811,7 @@ function ActivityScreen({
     }
 
     if (question.type === 'maze') {
-      return question.options[state.mazePosition.col]
+      return state.shuffledOptions[state.mazePosition.col]
     }
 
     return state.builtTokens.map((token) => token.label)
@@ -1097,7 +1116,7 @@ function ActivityScreen({
 
             {question.type === 'choice' ? (
               <div className="option-grid">
-                {question.options.map((option) => (
+                {questionState.shuffledOptions.map((option) => (
                   <button
                     key={option}
                     type="button"
@@ -1118,7 +1137,7 @@ function ActivityScreen({
 
             {question.type === 'picture' ? (
               <div className="picture-grid">
-                {question.options.map((option) => (
+                {questionState.shuffledOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
@@ -1215,7 +1234,7 @@ function ActivityScreen({
                                 key={`${row}-${col}`}
                                 className={`maze-cell ${isAnswerRow ? 'answer-row' : ''} ${isPathRow ? 'path-row' : ''} ${isPlayer ? 'active' : ''}`}
                               >
-                                {isAnswerRow ? question.options[col] : null}
+                                {isAnswerRow ? questionState.shuffledOptions[col] : null}
                                 {isPlayer ? <span className="maze-player" aria-label="Posisi pemain"></span> : null}
                               </div>
                             )
@@ -1343,6 +1362,7 @@ function DashboardScreen({
   onBack,
   onResetParticipant,
   onExportCsv,
+  onExportPdf,
 }) {
   const [code, setCode] = useState('')
   const [isUnlocked, setIsUnlocked] = useState(false)
@@ -1464,6 +1484,15 @@ function DashboardScreen({
             </span>
             <button type="button" className="secondary-button" onClick={onExportCsv}>
               Export CSV
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={onExportPdf}
+              disabled={apiStatus !== 'online'}
+              title={apiStatus !== 'online' ? 'Perlu koneksi API untuk export PDF' : undefined}
+            >
+              Export PDF
             </button>
             <button type="button" className="ghost-button" onClick={onBack}>
               Kembali
@@ -2024,6 +2053,19 @@ function App() {
     downloadCsv(`petualangan-kata-hasil-${new Date().toISOString().slice(0, 10)}.csv`, csv)
   }
 
+  async function handleExportPdf() {
+    if (apiStatus !== 'online') {
+      return
+    }
+
+    try {
+      const pdf = await fetchDashboardPdf()
+      downloadBlob(`petualangan-kata-hasil-${new Date().toISOString().slice(0, 10)}.pdf`, pdf)
+    } catch {
+      setSyncState('error')
+    }
+  }
+
   const showAcademicIdentity = screen === 'welcome' || screen === 'dashboard'
 
   return (
@@ -2085,6 +2127,7 @@ function App() {
           syncState={syncState}
           onBack={closeDashboard}
           onExportCsv={handleExportCsv}
+          onExportPdf={handleExportPdf}
           onResetParticipant={handleResetParticipant}
         />
       ) : null}

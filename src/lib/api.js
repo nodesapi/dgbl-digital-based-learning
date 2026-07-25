@@ -50,6 +50,23 @@ export async function fetchDashboardCsv() {
   return parseResponse(response)
 }
 
+export async function fetchDashboardPdf() {
+  const response = await fetch(`${API_BASE}/dashboard/export.pdf`)
+
+  if (!response.ok) {
+    let message = `Request failed with status ${response.status}`
+    try {
+      const payload = await response.json()
+      message = payload.message ?? message
+    } catch {
+      // Ignore JSON parse failure and keep the default message.
+    }
+    throw new Error(message)
+  }
+
+  return response.blob()
+}
+
 export async function deleteParticipant(participantCode) {
   const response = await fetch(`${API_BASE}/dashboard/participants/${encodeURIComponent(participantCode)}`, {
     method: 'DELETE',

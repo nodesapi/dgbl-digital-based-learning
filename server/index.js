@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express from 'express'
+import PDFDocument from 'pdfkit'
 import { dbConfig, serverConfig } from './config.js'
 import { checkDatabase, query, withTransaction } from './db.js'
 
@@ -85,6 +86,67 @@ function buildLogsCsv(sessions, logs) {
   return [header, ...rows]
     .map((row) => row.map(serializeCsvValue).join(','))
     .join('\n')
+}
+
+function writeResultsPdf(doc, sessions) {
+  doc.fontSize(18).text('Laporan Hasil Belajar - Petualangan Kata', { align: 'left' })
+  doc.fontSize(10).fillColor('#666666').text(`Dibuat pada ${new Date().toLocaleString('id-ID')}`)
+  doc.moveDown(1.2)
+
+  const columns = [
+    { label: 'Nama', width: 130 },
+    { label: 'Kelas', width: 80 },
+    { label: 'Pre-test', width: 70 },
+    { label: 'Post-test', width: 70 },
+    { label: 'Bintang', width: 60 },
+    { label: 'Status', width: 80 },
+  ]
+  const startX = doc.page.margins.left
+  const rowHeight = 22
+
+  function drawRow(values, y, { header = false } = {}) {
+    let x = startX
+    doc.fontSize(10).fillColor(header ? '#ffffff' : '#3a2a1e')
+    if (header) {
+      doc.rect(startX, y - 4, columns.reduce((sum, col) => sum + col.width, 0), rowHeight).fill('#ff8f3d')
+      doc.fillColor('#ffffff')
+    }
+    values.forEach((value, index) => {
+      doc.text(String(value ?? '-'), x, y, { width: columns[index].width, ellipsis: true })
+      x += columns[index].width
+    })
+  }
+
+  let y = doc.y
+  drawRow(columns.map((col) => col.label), y, { header: true })
+  y += rowHeight
+
+  if (sessions.length === 0) {
+    doc.fontSize(11).fillColor('#3a2a1e').text('Belum ada data peserta yang tersimpan.', startX, y + 10)
+    return
+  }
+
+  for (const session of sessions) {
+    if (y > doc.page.height - doc.page.margins.bottom - rowHeight) {
+      doc.addPage()
+      y = doc.page.margins.top
+      drawRow(columns.map((col) => col.label), y, { header: true })
+      y += rowHeight
+    }
+
+    drawRow(
+      [
+        session.participant_code || '-',
+        session.class_group || '-',
+        `${session.pretest_accuracy ?? 0}%`,
+        `${session.posttest_accuracy ?? 0}%`,
+        session.total_stars ?? 0,
+        session.status === 'completed' ? 'Selesai' : 'Berjalan',
+      ],
+      y,
+    )
+    y += rowHeight
+  }
 }
 
 app.get('/api/health', async (_request, response) => {
@@ -332,6 +394,34 @@ app.get('/api/dashboard/export.csv', async (_request, response) => {
       `attachment; filename="petualangan-kata-hasil-${new Date().toISOString().slice(0, 10)}.csv"`,
     )
     response.send(csv)
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      message: error.message,
+    })
+  }
+})
+
+app.get('/api/dashboard/export.pdf', async (_request, response) => {
+  try {
+    const sessionsResult = await query(
+      `
+        SELECT participant_code, class_group, status, pretest_accuracy, posttest_accuracy, total_stars
+        FROM game_sessions
+        ORDER BY started_at DESC
+      `,
+    )
+
+    response.setHeader('Content-Type', 'application/pdf')
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="petualangan-kata-hasil-${new Date().toISOString().slice(0, 10)}.pdf"`,
+    )
+
+    const doc = new PDFDocument({ size: 'A4', margin: 40 })
+    doc.pipe(response)
+    writeResultsPdf(doc, sessionsResult.rows)
+    doc.end()
   } catch (error) {
     response.status(500).json({
       ok: false,
