@@ -40,6 +40,23 @@ Default backend sudah disiapkan untuk:
 
 Kalau ingin override, gunakan environment variable PostgreSQL standar seperti `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, dan `PGDATABASE`.
 
+## Konfigurasi `.env`
+
+Backend sekarang otomatis membaca file `.env` dari root project. File `.env.example` hanya template.
+
+Contoh `.env`:
+
+```env
+PGHOST=127.0.0.1
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=password123
+PGDATABASE=petualangan_kata
+PORT=3001
+```
+
+Untuk server production seperti aaPanel, buat file `.env` berdasarkan `.env.example`, lalu sesuaikan nama database, user, password, dan port.
+
 ## Menjalankan Project
 
 1. Install dependency:
