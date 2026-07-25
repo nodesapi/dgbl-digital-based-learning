@@ -390,6 +390,7 @@ app.get('/api/dashboard/export.csv', async (_request, response) => {
 
     const csv = buildLogsCsv(sessionsResult.rows, logsResult.rows)
     response.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    response.setHeader('Cache-Control', 'no-store')
     response.setHeader(
       'Content-Disposition',
       `attachment; filename="petualangan-kata-hasil-${new Date().toISOString().slice(0, 10)}.csv"`,
@@ -414,6 +415,7 @@ app.get('/api/dashboard/export.pdf', async (_request, response) => {
     )
 
     response.setHeader('Content-Type', 'application/pdf')
+    response.setHeader('Cache-Control', 'no-store')
     response.setHeader(
       'Content-Disposition',
       `attachment; filename="petualangan-kata-hasil-${new Date().toISOString().slice(0, 10)}.pdf"`,
