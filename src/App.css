@@ -1302,9 +1302,12 @@ input {
 }
 
 .install-fab__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+  border: 2px solid rgba(255, 255, 255, 0.7);
 }
 
 .dialog-backdrop {
