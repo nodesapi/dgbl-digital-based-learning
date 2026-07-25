@@ -704,6 +704,7 @@ function ActivityScreen({
   const [startedAt, setStartedAt] = useState(() => Date.now())
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false)
   const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false)
+  const [timeoutOverlayBadge, setTimeoutOverlayBadge] = useState('00')
   const [successMessage, setSuccessMessage] = useState('')
   const [timeRemainingMs, setTimeRemainingMs] = useState(() => getQuestionTimeLimitSeconds(deck[0]) * 1000)
   const visualLabel = getQuestionVisualLabel(question)
@@ -946,6 +947,39 @@ function ActivityScreen({
       return
     }
 
+    const isAssessmentPhase = progressLabel.phase === 'pretest' || progressLabel.phase === 'posttest'
+
+    if (isAssessmentPhase) {
+      const nextMessage = isLastQuestion
+        ? progressLabel.phase === 'pretest'
+          ? 'Siap masuk ke tahap berikutnya'
+          : 'Menyiapkan hasil akhir'
+        : 'Lanjut ke soal berikutnya'
+
+      setTimeoutOverlayBadge('✕')
+      setShowTimeoutOverlay(true)
+      setSuccessMessage(nextMessage)
+      registerFeedback('Belum tepat. Jawaban tercatat, lanjut ke soal berikutnya.', 'error')
+      await playFeedbackAudio('error')
+      window.setTimeout(() => {
+        onComplete({
+          questionId: question.id,
+          phase: progressLabel.phase,
+          moduleId: progressLabel.moduleId,
+          answer,
+          isCorrect: false,
+          helpUsed: questionState.helpUsed,
+          attempts: attemptNumber,
+          durationMs,
+          timeLimitSeconds,
+          timedOut: false,
+          score: 0,
+          answeredAt: new Date().toISOString(),
+        })
+      }, 500)
+      return
+    }
+
     await playFeedbackAudio('error')
     setQuestionState((current) => ({
       ...current,
@@ -971,6 +1005,7 @@ function ActivityScreen({
     const durationMs = timeLimitSeconds * 1000
     const attemptNumber = questionState.attempts + 1
 
+    setTimeoutOverlayBadge('00')
     setShowTimeoutOverlay(true)
     setSuccessMessage('Waktu habis. Lanjut ke soal berikutnya.')
 
@@ -1073,7 +1108,7 @@ function ActivityScreen({
         <div className="question-card">
           {showTimeoutOverlay ? (
             <div className="success-overlay success-overlay--timeout" aria-hidden="true">
-              <div className="success-overlay__badge success-overlay__badge--timeout">00</div>
+              <div className="success-overlay__badge success-overlay__badge--timeout">{timeoutOverlayBadge}</div>
               <div className="success-overlay__text">{successMessage}</div>
             </div>
           ) : null}
