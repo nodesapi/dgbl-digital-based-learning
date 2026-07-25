@@ -1275,6 +1275,38 @@ input {
   letter-spacing: 0.08em;
 }
 
+.install-fab {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: 3px solid rgba(91, 61, 45, 0.18);
+  background: linear-gradient(135deg, rgba(255, 176, 77, 1) 0%, rgba(255, 111, 87, 0.98) 100%);
+  color: white;
+  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.98rem;
+  box-shadow: 7px 7px 0 rgba(91, 61, 45, 0.18);
+  cursor: pointer;
+}
+
+.install-fab:active {
+  transform: translateX(-50%) translateY(3px);
+  box-shadow: 4px 4px 0 rgba(91, 61, 45, 0.18);
+}
+
+.install-fab__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .dialog-backdrop {
   position: fixed;
   inset: 0;

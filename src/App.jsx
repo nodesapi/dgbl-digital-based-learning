@@ -1628,15 +1628,18 @@ function App() {
       event.preventDefault()
       setInstallPrompt(event)
     }
+    const handleAppInstalled = () => setInstallPrompt(null)
 
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
 
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 
@@ -2145,6 +2148,19 @@ function App() {
           onNewSession={handleNewSession}
           onOpenDashboard={openDashboard}
         />
+      ) : null}
+
+      {installPrompt ? (
+        <button type="button" className="install-fab" onClick={handleInstall}>
+          <span className="install-fab__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v12" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M5 21h14" />
+            </svg>
+          </span>
+          <span className="install-fab__label">Pasang Aplikasi</span>
+        </button>
       ) : null}
     </main>
   )
