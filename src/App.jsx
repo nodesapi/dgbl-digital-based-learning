@@ -423,9 +423,7 @@ function shuffleArray(items) {
   return result
 }
 
-function resetQuestionState(question) {
-  const shuffledOptions = Array.isArray(question.options) ? shuffleArray(question.options) : []
-
+function resetQuestionState(question, shuffledOptions) {
   const tokens = shuffledOptions.map((option, index) => ({
     id: `${question.id}-${index}`,
     label: typeof option === 'string' ? option : option.label,
@@ -436,7 +434,6 @@ function resetQuestionState(question) {
     selectedAnswer: null,
     builtTokens: [],
     availableTokens: tokens,
-    shuffledOptions,
     helpUsed: false,
     feedback: '',
     feedbackTone: 'neutral',
@@ -698,13 +695,17 @@ function ActivityScreen({
   onAttempt,
   onComplete,
 }) {
-  const [questionState, setQuestionState] = useState(() => resetQuestionState(deck[0]))
+  const question = deck[progressLabel.currentIndex]
+  const shuffledOptions = useMemo(
+    () => (Array.isArray(question.options) ? shuffleArray(question.options) : []),
+    [question],
+  )
+  const [questionState, setQuestionState] = useState(() => resetQuestionState(deck[0], shuffledOptions))
   const [startedAt, setStartedAt] = useState(() => Date.now())
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false)
   const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [timeRemainingMs, setTimeRemainingMs] = useState(() => getQuestionTimeLimitSeconds(deck[0]) * 1000)
-  const question = deck[progressLabel.currentIndex]
   const visualLabel = getQuestionVisualLabel(question)
   const visualAsset = getWordImageAsset(visualLabel)
   const visualSrc = visualAsset?.src ?? null
@@ -723,14 +724,14 @@ function ActivityScreen({
   const isQuestionLocked = showSuccessOverlay || showTimeoutOverlay
 
   useEffect(() => {
-    setQuestionState(resetQuestionState(question))
+    setQuestionState(resetQuestionState(question, shuffledOptions))
     setStartedAt(Date.now())
     setShowSuccessOverlay(false)
     setShowTimeoutOverlay(false)
     setSuccessMessage('')
     setTimeRemainingMs(timeLimitSeconds * 1000)
     speakText(getQuestionNarration(question))
-  }, [question, timeLimitSeconds])
+  }, [question, shuffledOptions, timeLimitSeconds])
 
   useEffect(() => {
     if (isQuestionLocked) {
@@ -811,7 +812,7 @@ function ActivityScreen({
     }
 
     if (question.type === 'maze') {
-      return state.shuffledOptions[state.mazePosition.col]
+      return shuffledOptions[state.mazePosition.col]
     }
 
     return state.builtTokens.map((token) => token.label)
@@ -1116,7 +1117,7 @@ function ActivityScreen({
 
             {question.type === 'choice' ? (
               <div className="option-grid">
-                {questionState.shuffledOptions.map((option) => (
+                {shuffledOptions.map((option) => (
                   <button
                     key={option}
                     type="button"
@@ -1137,7 +1138,7 @@ function ActivityScreen({
 
             {question.type === 'picture' ? (
               <div className="picture-grid">
-                {questionState.shuffledOptions.map((option) => (
+                {shuffledOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
@@ -1234,7 +1235,7 @@ function ActivityScreen({
                                 key={`${row}-${col}`}
                                 className={`maze-cell ${isAnswerRow ? 'answer-row' : ''} ${isPathRow ? 'path-row' : ''} ${isPlayer ? 'active' : ''}`}
                               >
-                                {isAnswerRow ? questionState.shuffledOptions[col] : null}
+                                {isAnswerRow ? shuffledOptions[col] : null}
                                 {isPlayer ? <span className="maze-player" aria-label="Posisi pemain"></span> : null}
                               </div>
                             )
