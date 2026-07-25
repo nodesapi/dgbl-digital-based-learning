@@ -289,6 +289,7 @@ app.post('/api/sync/session', async (request, response) => {
               answered_at
             )
             VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10)
+            ON CONFLICT (session_id, question_id, phase, module_id, attempt) DO NOTHING
           `,
           [
             normalizedSession.id,

@@ -620,10 +620,10 @@ export const posttestQuestions = [
   {
     id: 'POST-13',
     type: 'maze',
-    prompt: 'Post-test: lengkapi kata _ UKU.',
+    prompt: 'Post-test: lengkapi kata __ + KU.',
     instruction: 'Gerakkan penjelajah ke suku kata awal yang tepat.',
     hint: 'Buku dimulai dari BU.',
-    pattern: '_ UKU',
+    pattern: '__ + KU',
     options: ['SA', 'BU', 'TO'],
     correctAnswer: 'BU',
     clue: 'Gambar: Buku',
