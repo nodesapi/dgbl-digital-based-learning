@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Internal planning docs, not meant for the public repo
+IMPLEMENTATION_MAP.md
+PRD_DGBL_Membaca_Dasar_SD_Kelas_Awal.md
